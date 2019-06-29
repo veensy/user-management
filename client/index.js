@@ -6,6 +6,7 @@ import { Route, Switch, HashRouter } from "react-router-dom";
 
 import Menu from "./components/Menu";
 import Users from "./components/Users";
+import Edit from "./components/edit/Edit";
 
 const client = new ApolloClient({
   uri: "/graphql",
@@ -20,6 +21,7 @@ const Root = () => {
             <div className="row align-items-center h-100">
               <Route exact path="/" component={Menu} />
               <Route exact path="/users" component={Users} />
+              <Route exact path="/users/edit/:id" component={Edit} />
             </div>
           </div>
         </Switch>

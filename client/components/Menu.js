@@ -6,9 +6,7 @@ import "./Menu.scss";
 class App extends React.Component {
   render() {
     return (
-      // <div className="container-fluid h-100 home">
-      //   <div className="row align-items-center h-100">
-      <div className="col-lg-6 col-8 mx-auto Menu">
+      <div className="col-lg-6 col-8 mx-auto Menu ">
         <Jumbotron>
           <h1 className="mb-5 text-center">User management system</h1>
           <div className="d-flex flex-column  mx-auto  ">
@@ -18,7 +16,7 @@ class App extends React.Component {
                 size="lg"
                 className="btn-menu mb-3"
               >
-                Users
+                <h3>Users</h3>
               </Button>
             </Link>
             <Link to="/organizations" className="mx-auto">
@@ -27,7 +25,7 @@ class App extends React.Component {
                 size="lg"
                 className="btn-menu mb-3"
               >
-                Organizations
+                <h3>Organizations</h3>
               </Button>
             </Link>
             <Link to="/teams" className="mx-auto">
@@ -36,14 +34,12 @@ class App extends React.Component {
                 size="lg"
                 className="btn-menu mb-3"
               >
-                Teams
+                <h3> Teams</h3>
               </Button>
             </Link>
           </div>
         </Jumbotron>
       </div>
-      //   </div>
-      // </div>
     );
   }
 }
