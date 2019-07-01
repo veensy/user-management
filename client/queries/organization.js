@@ -1,12 +1,12 @@
 import gql from "graphql-tag";
 
 export default gql`
-  query getUser($id: ID!) {
-    user(id: $id) {
+  query getOrganization($id: ID!) {
+    organization(id: $id) {
       id
       name
-      email
-      organization {
+      user {
+        email
         name
         id
       }
@@ -15,9 +15,10 @@ export default gql`
         id
       }
     }
-    organizations {
+    users {
       id
       name
+      email
     }
     teams {
       id

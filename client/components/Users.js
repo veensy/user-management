@@ -2,18 +2,15 @@ import React, { Component } from "react";
 import { Table, Spinner, Pagination } from "react-bootstrap";
 import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
-import query from "../queries/users";
 import Modal from "modal-simple";
+import query from "../queries/users";
+import deleteUser from "../mutations/deleteUser";
 
 class Users extends Component {
   state = {
     show: false,
     id: "",
     name: ""
-    // activePage: 1,
-    // itemPerPage: 3,
-    // productList: [],
-    // duplicateProductList: []
   };
   renderList = () => {
     if (this.props.data.loading) {
@@ -23,7 +20,7 @@ class Users extends Component {
         </Spinner>
       );
     }
-    if (!this.props.data.loading) {
+    if (!this.props.data.loading && this.props.data.users.length > 0) {
       return this.props.data.users.map((user, id) => {
         if (user.organization === null) {
           user.organization = "";
@@ -39,7 +36,7 @@ class Users extends Component {
             <td>{user.organization.name}</td>
             <td>{user.team.name}</td>
             <td>
-              <Link to={`users/edit/${user.id}`} >
+              <Link to={`users/edit/${user.id}`}>
                 <i className="material-icons">edit</i>
               </Link>
               <Link>
@@ -58,6 +55,15 @@ class Users extends Component {
       });
     }
   };
+  handleEmptyList = () => {
+    if (!this.props.data.loading && this.props.data.users.length < 1) {
+      return (
+        <h3 className="text-danger">
+          There's no users register yet, please create a new one !
+        </h3>
+      );
+    }
+  };
   deleteUserConfirmation = (id, name) => {
     this.setState({ show: !this.state.show, id, name });
   };
@@ -65,18 +71,43 @@ class Users extends Component {
     this.setState({ show: !this.state.show });
   };
   deleteUser = () => {
-    console.log("tes");
+    this.props
+      .mutate({
+        variables: { id: this.state.id }
+      })
+      .then(() => this.props.data.refetch())
+      .then(() => {
+        this.onHide();
+      });
+  };
+  handlePages = () => {
+    let active = 2;
+    let items = [];
+    for (let number = 1; number <= 5; number++) {
+      return items.push(
+        <Pagination.Item key={number} active={number === active}>
+          {number}
+        </Pagination.Item>
+      );
+    }
   };
 
   render() {
+
     return (
-      <div className="col-lg-6 col-8 mx-auto  ">
+      <div className="col-8 mx-auto  ">
         <div className="fixed-top">
           <Link to="/" className="d-flex flex-row ">
             <i class="material-icons">arrow_left</i>Back to Menu
           </Link>
         </div>
         <div className="mx-auto ">
+          <div className="d-flex flex-row align-items-center justify-content-between">
+            <h1>User's list</h1>
+            <Link to="/users/create" className="float-right">
+              Add a new user
+            </Link>
+          </div>
           <Table responsive className="">
             <thead class="thead-dark">
               <tr>
@@ -90,6 +121,8 @@ class Users extends Component {
             </thead>
             <tbody>{this.renderList()}</tbody>
           </Table>
+          <Pagination>{this.handlePages}</Pagination>
+          {this.handleEmptyList()}
           <Modal
             show={this.state.show}
             onHide={this.onHide}
@@ -121,4 +154,4 @@ class Users extends Component {
     );
   }
 }
-export default graphql(query)(Users);
+export default graphql(deleteUser)(graphql(query)(Users));

@@ -1,9 +1,8 @@
 import gql from "graphql-tag";
 
 export default gql`
-  mutation AddTeam($name: String!) {
-    addTeam(name: $name) {
-      id
+  mutation DeleteTeam($id: ID!) {
+    deleteTeam(id: $id) {
       name
     }
   }

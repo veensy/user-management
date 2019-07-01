@@ -1,25 +1,26 @@
 import gql from "graphql-tag";
 
 export default gql`
-  query getUser($id: ID!) {
-    user(id: $id) {
+  query getTeam($id: ID!) {
+    team(id: $id) {
       id
       name
-      email
+      user {
+        email
+        name
+        id
+      }
       organization {
         name
         id
       }
-      team {
-        name
-        id
-      }
     }
-    organizations {
+    users {
       id
       name
+      email
     }
-    teams {
+    organizations {
       id
       name
     }

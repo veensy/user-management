@@ -2,10 +2,10 @@ import gql from "graphql-tag";
 
 export default gql`
   mutation AddUser(
-    $name: String
-    $email: String
-    $organizationId: String
-    $teamId: String
+    $name: String!
+    $email: String!
+    $organizationId: ID
+    $teamId: ID
   ) {
     addUser(
       name: $name
