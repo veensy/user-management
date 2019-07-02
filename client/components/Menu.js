@@ -6,7 +6,7 @@ import "./Menu.scss";
 class App extends React.Component {
   render() {
     return (
-      <div className="col-lg-6 col-8 mx-auto Menu ">
+      <div className=" col-10 mx-auto Menu ">
         <Jumbotron>
           <h1 className="mb-5 text-center">User management system</h1>
           <div className="d-flex flex-column  mx-auto  ">

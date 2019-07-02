@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { Table, Spinner, Pagination } from "react-bootstrap";
+import { Table, Spinner, Jumbotron } from "react-bootstrap";
 import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from "modal-simple";
+import Pagination from "react-js-pagination";
 import query from "../queries/organizations";
 import deleteOrganization from "../mutations/deleteOrganization";
 
@@ -10,8 +11,20 @@ class Organizations extends Component {
   state = {
     show: false,
     id: "",
-    name: ""
+    name: "",
+    activePage: 1,
+    itemPerPage: 5,
+    organizationList: this.props.data.loading
+      ? []
+      : this.props.data.organizations
   };
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.data.loading !== prevProps.data.loading) {
+      this.setState({
+        organizationList: this.props.data.organizations
+      });
+    }
+  }
   deleteOrganizationConfirmation = (id, name) => {
     this.setState({ show: !this.state.show, id, name });
   };
@@ -21,14 +34,14 @@ class Organizations extends Component {
   deleteOrganization = () => {
     this.props
       .mutate({
-        variables: { id: this.state.id }
+        variables: { id: this.state.id },
+        refetchQueries: [{ query }]
       })
-      .then(() => this.props.data.refetch())
       .then(() => {
         this.onHide();
       });
   };
-  renderList = () => {
+  renderList = (renderedProjects, count) => {
     if (this.props.data.loading) {
       return (
         <Spinner animation="border" role="status" variant="primary">
@@ -37,28 +50,36 @@ class Organizations extends Component {
       );
     }
     if (!this.props.data.loading && this.props.data.organizations.length > 0) {
-      return this.props.data.organizations.map((organization, id) => {
+      return renderedProjects.map((organization, id) => {
         return (
           <tr key={organization.id}>
-            <td>{id + 1}</td>
-            <td>{organization.name}</td>
+            <td>{count + id + 1}</td>
+            <td>
+              <Link to={`details/${organization.id}/organization`}>
+                {organization.name}
+              </Link>
+            </td>
             <td>
               {organization.users.map((user, id) => {
+                const userId = user.id ? user.id : "";
                 return (
-                  <span>
-                    {user.name ? user.name : ""}
-                    <br />
-                  </span>
+                  <p className="mb-2">
+                    <Link to={`details/${userId}/user`}>
+                      {user.name ? user.name : ""}
+                    </Link>
+                  </p>
                 );
               })}
             </td>
             <td>
               {organization.users.map((user, id) => {
+                const teamId = user.team ? user.team.id : "";
                 return (
-                  <span>
-                    {user.team ? user.team.name : ""}
-                    <br />
-                  </span>
+                  <p className="mb-2">
+                    <Link to={`details/${teamId}/team`}>
+                      {user.team ? user.team.name : ""}
+                    </Link>
+                  </p>
                 );
               })}
             </td>
@@ -94,7 +115,16 @@ class Organizations extends Component {
       );
     }
   };
+  handlePageChange = pageNumber => {
+    this.setState({ activePage: pageNumber });
+  };
   render() {
+    var indexOfLastTodo = this.state.activePage * this.state.itemPerPage;
+    var indexOfFirstTodo = indexOfLastTodo - this.state.itemPerPage;
+    var renderedProjects = this.state.organizationList.slice(
+      indexOfFirstTodo,
+      indexOfLastTodo
+    );
     return (
       <div className=" col-8 mx-auto  ">
         <div className="fixed-top">
@@ -102,7 +132,7 @@ class Organizations extends Component {
             <i class="material-icons">arrow_left</i>Back to Menu
           </Link>
         </div>
-        <div className="mx-auto ">
+        <Jumbotron>
           <div className="d-flex flex-row align-items-center justify-content-between">
             <h1>Organization's list</h1>
             <Link to="/organizations/create" className="float-right">
@@ -119,9 +149,21 @@ class Organizations extends Component {
                 <th scope="col">Options</th>
               </tr>
             </thead>
-            <tbody>{this.renderList()}</tbody>
+            <tbody>{this.renderList(renderedProjects, indexOfFirstTodo)}</tbody>
           </Table>
           {this.handleEmptyList()}
+          <div className=" d-flex justify-content-center">
+            <Pagination
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.itemPerPage}
+              totalItemsCount={this.state.organizationList.length}
+              pageRangeDisplayed={5}
+              onChange={this.handlePageChange}
+              itemClass="page-item"
+              linkClass="page-link"
+            />
+          </div>
+
           <Modal
             show={this.state.show}
             onHide={this.onHide}
@@ -137,7 +179,7 @@ class Organizations extends Component {
               cancel={{ text: "Cancel", variant: "secondary" }}
             />
           </Modal>
-        </div>
+        </Jumbotron>
       </div>
     );
   }

@@ -5,15 +5,6 @@ export default gql`
     organization(id: $id) {
       id
       name
-      user {
-        email
-        name
-        id
-      }
-      team {
-        name
-        id
-      }
     }
     users {
       id

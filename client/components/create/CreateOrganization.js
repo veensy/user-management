@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Form, Jumbotron, Spinner, Button } from "react-bootstrap";
-import { graphql, compose } from "react-apollo";
+import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from "modal-simple";
 import addOrganization from "../../mutations/addOrganization";

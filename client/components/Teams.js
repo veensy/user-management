@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { Table, Spinner, Pagination } from "react-bootstrap";
+import { Table, Spinner,Jumbotron } from "react-bootstrap";
 import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from "modal-simple";
+import Pagination from "react-js-pagination";
 import query from "../queries/teams";
 import deleteTeam from "../mutations/deleteTeam";
 
@@ -10,8 +11,18 @@ class Teams extends Component {
   state = {
     show: false,
     id: "",
-    name: ""
+    name: "",
+    activePage: 1,
+    itemPerPage: 5,
+    teamList: this.props.data.loading ? [] : this.props.data.teams
   };
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.data.loading !== prevProps.data.loading) {
+      this.setState({
+        teamList: this.props.data.teams
+      });
+    }
+  }
   deleteTeamConfirmation = (id, name) => {
     this.setState({ show: !this.state.show, id, name });
   };
@@ -21,14 +32,14 @@ class Teams extends Component {
   deleteTeam = () => {
     this.props
       .mutate({
-        variables: { id: this.state.id }
+        variables: { id: this.state.id },
+        refetchQueries: [{ query }]
       })
-      .then(() => this.props.data.refetch())
       .then(() => {
         this.onHide();
       });
   };
-  renderList = () => {
+  renderList = (renderedProjects, count) => {
     if (this.props.data.loading) {
       return (
         <Spinner animation="border" role="status" variant="primary">
@@ -37,28 +48,36 @@ class Teams extends Component {
       );
     }
     if (!this.props.data.loading && this.props.data.teams.length > 0) {
-      return this.props.data.teams.map((team, id) => {
+      return renderedProjects.map((team, id) => {
         return (
           <tr key={team.id}>
-            <td>{id + 1}</td>
-            <td>{team.name}</td>
+            <td>{count + id + 1}</td>
+            <td>
+              <Link to={`details/${team.id}/team`}>{team.name}</Link>
+            </td>
             <td>
               {team.users.map((user, id) => {
+                const userId = user.id ? user.id : "";
                 return (
-                  <span>
-                    {user.name ? user.name : ""}
-                    <br />
-                  </span>
+                  <p className="mb-2">
+                    <Link to={`details/${userId}/user`}>
+                      {user.name ? user.name : ""}
+                    </Link>
+                  </p>
                 );
               })}
             </td>
             <td>
               {team.users.map((user, id) => {
+                const organizationId = user.organization
+                  ? user.organization.id
+                  : "";
                 return (
-                  <span>
-                    {user.organization ? user.organization.name : ""}
-                    <br />
-                  </span>
+                  <p className="mb-2">
+                    <Link to={`details/${organizationId}/user`}>
+                      {user.organization ? user.organization.name : ""}
+                    </Link>
+                  </p>
                 );
               })}
             </td>
@@ -91,7 +110,16 @@ class Teams extends Component {
       );
     }
   };
+  handlePageChange = pageNumber => {
+    this.setState({ activePage: pageNumber });
+  };
   render() {
+    var indexOfLastTodo = this.state.activePage * this.state.itemPerPage;
+    var indexOfFirstTodo = indexOfLastTodo - this.state.itemPerPage;
+    var renderedProjects = this.state.teamList.slice(
+      indexOfFirstTodo,
+      indexOfLastTodo
+    );
     return (
       <div className="col-8 mx-auto  ">
         <div className="fixed-top">
@@ -99,7 +127,7 @@ class Teams extends Component {
             <i class="material-icons">arrow_left</i>Back to Menu
           </Link>
         </div>
-        <div className="mx-auto ">
+        <Jumbotron>
           <div className="d-flex flex-row align-items-center justify-content-between">
             <h1>Team's list</h1>
             <Link to="/teams/create" className="float-right">
@@ -116,9 +144,20 @@ class Teams extends Component {
                 <th scope="col">Options</th>
               </tr>
             </thead>
-            <tbody>{this.renderList()}</tbody>
+            <tbody>{this.renderList(renderedProjects, indexOfFirstTodo)}</tbody>
           </Table>
           {this.handleEmptyList()}
+          <div className=" d-flex justify-content-center">
+            <Pagination
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.itemPerPage}
+              totalItemsCount={this.state.teamList.length}
+              pageRangeDisplayed={5}
+              onChange={this.handlePageChange}
+              itemClass="page-item"
+              linkClass="page-link"
+            />
+          </div>
           <Modal
             show={this.state.show}
             onHide={this.onHide}
@@ -134,7 +173,7 @@ class Teams extends Component {
               cancel={{ text: "Cancel", variant: "secondary" }}
             />
           </Modal>
-        </div>
+        </Jumbotron>
       </div>
     );
   }

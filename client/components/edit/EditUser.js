@@ -7,7 +7,7 @@ import query from "../../queries/users";
 import getUser from "../../queries/user";
 import updateUser from "../../mutations/updateUser";
 
-class Edit extends Component {
+class EditUser extends Component {
   state = {
     show: false,
     name: undefined,
@@ -19,23 +19,22 @@ class Edit extends Component {
     info: {}
   };
   changedInfo = () => {
-    let name;
-    let email;
-    let organization;
-    let team;
     if (this.state.name) {
-      name = `name : ${this.state.name}`;
+      let name = `name : ${this.state.name}`;
+      this.setState({ info: { name } });
     }
     if (this.state.email) {
-      email = `email : ${this.state.email}`;
+      let email = `email : ${this.state.email}`;
+      this.setState({ info: { email } });
     }
     if (this.state.organizationName) {
-      organization = `organization : ${this.state.organizationName}`;
+      let organization = `organization : ${this.state.organizationName}`;
+      this.setState({ info: { organization } });
     }
     if (this.state.teamName) {
-      team = `team : ${this.state.teamName}`;
+      let team = `team : ${this.state.teamName}`;
+      this.setState({ info: { team } });
     }
-    this.setState({ info: { name, email, organization, team } });
   };
   onHide = () => {
     this.setState({ show: !this.state.show });
@@ -158,6 +157,13 @@ class Edit extends Component {
     );
   };
   render() {
+    let isChange = undefined;
+    if (_.isEmpty(this.state.info)) {
+      isChange = "Return to Listing";
+    } else {
+      isChange = "Update";
+    }
+
     return (
       <div className="col-lg-6 col-8 mx-auto  ">
         <div className="fixed-top">
@@ -181,11 +187,12 @@ class Edit extends Component {
                 <li>{this.state.info.organization}</li>
               ) : null}
               {this.state.info.team ? <li>{this.state.info.team}</li> : null}
+              {isChange === "Update" ? "" : "Nothing change..."}
             </ul>
           </div>
           <Modal.Footer
             validate={{
-              text: "Update",
+              text: isChange,
               variant: "primary",
               action: this.updateUser
             }}
@@ -206,5 +213,5 @@ export default graphql(updateUser)(
         }
       };
     }
-  })(Edit)
+  })(EditUser)
 );

@@ -1,18 +1,32 @@
 import React, { Component } from "react";
-import { Table, Spinner, Pagination } from "react-bootstrap";
+import { Table, Spinner, Jumbotron } from "react-bootstrap";
 import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from "modal-simple";
 import query from "../queries/users";
 import deleteUser from "../mutations/deleteUser";
+import Pagination from "react-js-pagination";
 
 class Users extends Component {
   state = {
     show: false,
     id: "",
-    name: ""
+    name: "",
+    activePage: 1,
+    itemPerPage: 5,
+    userList: this.props.data.loading ? [] : this.props.data.users
   };
-  renderList = () => {
+  componentDidUpdate(prevProps, prevState) {
+    if ((this.props.data.loading !== prevProps.data.loading)||!this.props.data.loading &&
+    this.props.data.users !== prevState.userList) {
+      this.setState({
+        userList: this.props.data.users
+      });
+    }
+   
+  }
+
+  renderList = (renderedProjects, count) => {
     if (this.props.data.loading) {
       return (
         <Spinner animation="border" role="status" variant="primary">
@@ -21,20 +35,29 @@ class Users extends Component {
       );
     }
     if (!this.props.data.loading && this.props.data.users.length > 0) {
-      return this.props.data.users.map((user, id) => {
+      return renderedProjects.map((user, id) => {
         if (user.organization === null) {
           user.organization = "";
         }
         if (user.team === null) {
           user.team = "";
         }
+
         return (
           <tr key={user.id}>
-            <td>{id + 1}</td>
-            <td>{user.name}</td>
+            <td>{count + id + 1}</td>
+            <td>
+              <Link to={`details/${user.id}/user`}>{user.name}</Link>
+            </td>
             <td>{user.email}</td>
-            <td>{user.organization.name}</td>
-            <td>{user.team.name}</td>
+            <td>
+              <Link to={`details/${user.organization.id}/organization`}>
+                {user.organization.name}
+              </Link>
+            </td>
+            <td>
+              <Link to={`details/${user.team.id}/team`}>{user.team.name}</Link>
+            </td>
             <td>
               <Link to={`users/edit/${user.id}`}>
                 <i className="material-icons">edit</i>
@@ -73,42 +96,39 @@ class Users extends Component {
   deleteUser = () => {
     this.props
       .mutate({
-        variables: { id: this.state.id }
+        variables: { id: this.state.id },
+        refetchQueries: [{ query }]
       })
-      .then(() => this.props.data.refetch())
       .then(() => {
         this.onHide();
       });
   };
-  handlePages = () => {
-    let active = 2;
-    let items = [];
-    for (let number = 1; number <= 5; number++) {
-      return items.push(
-        <Pagination.Item key={number} active={number === active}>
-          {number}
-        </Pagination.Item>
-      );
-    }
+  handlePageChange = pageNumber => {
+    this.setState({ activePage: pageNumber });
   };
 
   render() {
-
+    var indexOfLastTodo = this.state.activePage * this.state.itemPerPage;
+    var indexOfFirstTodo = indexOfLastTodo - this.state.itemPerPage;
+    var renderedProjects = this.state.userList.slice(
+      indexOfFirstTodo,
+      indexOfLastTodo
+    );
     return (
-      <div className="col-8 mx-auto  ">
+      <div className="col-10 mx-auto  ">
         <div className="fixed-top">
           <Link to="/" className="d-flex flex-row ">
             <i class="material-icons">arrow_left</i>Back to Menu
           </Link>
         </div>
-        <div className="mx-auto ">
+        <Jumbotron>
           <div className="d-flex flex-row align-items-center justify-content-between">
             <h1>User's list</h1>
             <Link to="/users/create" className="float-right">
               Add a new user
             </Link>
           </div>
-          <Table responsive className="">
+          <Table className="h-50">
             <thead class="thead-dark">
               <tr>
                 <th scope="col">#</th>
@@ -119,10 +139,21 @@ class Users extends Component {
                 <th scope="col">Options</th>
               </tr>
             </thead>
-            <tbody>{this.renderList()}</tbody>
+            <tbody>{this.renderList(renderedProjects, indexOfFirstTodo)}</tbody>
           </Table>
-          <Pagination>{this.handlePages}</Pagination>
           {this.handleEmptyList()}
+          <div className=" d-flex justify-content-center">
+            <Pagination
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.itemPerPage}
+              totalItemsCount={this.state.userList.length}
+              pageRangeDisplayed={5}
+              onChange={this.handlePageChange}
+              itemClass="page-item"
+              linkClass="page-link"
+            />
+          </div>
+
           <Modal
             show={this.state.show}
             onHide={this.onHide}
@@ -140,16 +171,7 @@ class Users extends Component {
               cancel={{ text: "Cancel", variant: "secondary" }}
             />
           </Modal>
-
-          {/* <Pagination
-          https://stackoverflow.com/questions/49622281/react-bootstrap-pagination-not-showing
-            activePage={this.state.activePage}
-            itemsCountPerPage={this.state.itemPerPage}
-            totalItemsCount={this.state.duplicateProductList.length}
-            pageRangeDisplayed={5}
-            onChange={this.handlePageChange()}
-          /> */}
-        </div>
+        </Jumbotron>
       </div>
     );
   }
